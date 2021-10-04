@@ -41,6 +41,45 @@ func Run(ctx context.Context, opt Option, initializeScanner InitializeScanner, i
 	return runWithTimeout(ctx, opt, initializeScanner, initCache)
 }
 
+// TrivyRun scans an image...
+func TrivyRun(ctx context.Context, opt Option, initializeScanner InitializeScanner, initCache InitCache) (pkgReport.Report, error) {
+	if err := log.InitLogger(opt.Debug, opt.Quiet); err != nil {
+		return pkgReport.Report{}, err
+	}
+
+	cacheClient, err := initCache(opt)
+	if err != nil {
+		if errors.Is(err, errSkipScan) {
+			return pkgReport.Report{}, nil
+		}
+		return pkgReport.Report{}, xerrors.Errorf("cache error: %w", err)
+	}
+	defer cacheClient.Close()
+
+	// When scanning config files, it doesn't need to download the vulnerability database.
+	if utils.StringInSlice(types.SecurityCheckVulnerability, opt.SecurityChecks) {
+		if err = initDB(opt); err != nil {
+			if errors.Is(err, errSkipScan) {
+				return pkgReport.Report{}, nil
+			}
+			return pkgReport.Report{}, xerrors.Errorf("DB error: %w", err)
+		}
+		defer db.Close()
+	}
+
+	report, err := scan(ctx, opt, initializeScanner, cacheClient)
+	if err != nil {
+		return pkgReport.Report{}, xerrors.Errorf("scan error: %w", err)
+	}
+
+	report, err = filter(ctx, opt, report)
+	if err != nil {
+		return pkgReport.Report{}, xerrors.Errorf("filter error: %w", err)
+	}
+
+	return report, err
+}
+
 func runWithTimeout(ctx context.Context, opt Option, initializeScanner InitializeScanner, initCache InitCache) error {
 	if err := log.InitLogger(opt.Debug, opt.Quiet); err != nil {
 		return err
