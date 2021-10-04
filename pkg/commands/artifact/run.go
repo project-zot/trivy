@@ -39,8 +39,10 @@ const (
 var (
 	defaultPolicyNamespaces = []string{"appshield", "defsec", "builtin"}
 
-	supportedArtifactTypes = []ArtifactType{containerImageArtifact, filesystemArtifact, rootfsArtifact,
-		repositoryArtifact, imageArchiveArtifact}
+	supportedArtifactTypes = []ArtifactType{
+		containerImageArtifact, filesystemArtifact, rootfsArtifact,
+		repositoryArtifact, imageArchiveArtifact,
+	}
 
 	SkipScan = errors.New("skip subsequent processes")
 )
@@ -75,6 +77,45 @@ func WithCacheClient(c cache.Cache) runnerOption {
 	return func(r *Runner) {
 		r.cache = c
 	}
+}
+
+// TrivyRun scans an image...
+func TrivyRun(ctx context.Context, opt Option, initializeScanner InitializeScanner, initCache InitCache) (types.Report, error) {
+	if err := log.InitLogger(opt.Debug, opt.Quiet); err != nil {
+		return types.Report{}, err
+	}
+
+	cacheClient, err := initCache(opt)
+	if err != nil {
+		if errors.Is(err, errSkipScan) {
+			return types.Report{}, nil
+		}
+		return types.Report{}, xerrors.Errorf("cache error: %w", err)
+	}
+	defer cacheClient.Close()
+
+	// When scanning config files, it doesn't need to download the vulnerability database.
+	if utils.StringInSlice(types.SecurityCheckVulnerability, opt.SecurityChecks) {
+		if err = initDB(opt); err != nil {
+			if errors.Is(err, errSkipScan) {
+				return types.Report{}, nil
+			}
+			return types.Report{}, xerrors.Errorf("DB error: %w", err)
+		}
+		defer db.Close()
+	}
+
+	report, err := scan(ctx, opt, initializeScanner, cacheClient)
+	if err != nil {
+		return types.Report{}, xerrors.Errorf("scan error: %w", err)
+	}
+
+	report, err = filter(ctx, opt, report)
+	if err != nil {
+		return types.Report{}, xerrors.Errorf("filter error: %w", err)
+	}
+
+	return report, err
 }
 
 // NewRunner initializes Runner that provides scanning functionalities.
@@ -446,8 +487,8 @@ func initScannerConfig(opt Option, cacheClient cache.Cache) (ScannerConfig, type
 }
 
 func scan(ctx context.Context, opt Option, initializeScanner InitializeScanner, cacheClient cache.Cache) (
-	types.Report, error) {
-
+	types.Report, error,
+) {
 	scannerConfig, scanOptions, err := initScannerConfig(opt, cacheClient)
 	if err != nil {
 		return types.Report{}, err

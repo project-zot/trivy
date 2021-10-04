@@ -6,6 +6,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"golang.org/x/xerrors"
 
+	"github.com/aquasecurity/fanal/analyzer"
+	pkgReport "github.com/aquasecurity/trivy/pkg/report"
 	"github.com/aquasecurity/trivy/pkg/scanner"
 	"github.com/aquasecurity/trivy/pkg/types"
 )
@@ -38,7 +40,8 @@ func archiveStandaloneScanner(ctx context.Context, conf ScannerConfig) (scanner.
 // imageRemoteScanner initializes a container image scanner in client/server mode
 // $ trivy image --server localhost:4954 alpine:3.15
 func imageRemoteScanner(ctx context.Context, conf ScannerConfig) (
-	scanner.Scanner, func(), error) {
+	scanner.Scanner, func(), error,
+) {
 	// Scan an image in Docker Engine, Docker Registry, etc.
 	dockerOpt, err := types.GetDockerOption(conf.ArtifactOption.InsecureSkipTLS)
 	if err != nil {
@@ -67,4 +70,26 @@ func archiveRemoteScanner(ctx context.Context, conf ScannerConfig) (scanner.Scan
 // ImageRun runs scan on container image
 func ImageRun(ctx *cli.Context) error {
 	return Run(ctx, containerImageArtifact)
+}
+
+// TrivyImageRun...
+// initializes options based on context
+// scans an image
+// returns vulnerability wrapped in Report format
+// Zot needs list of vulnerabilities as image scan output.
+func TrivyImageRun(ctx *cli.Context) (types.Report, error) {
+	opt, err := initOption(ctx)
+	if err != nil {
+		return types.Report{}, xerrors.Errorf("option error: %w", err)
+	}
+
+	// Disable the lock file scanning
+	opt.DisabledAnalyzers = analyzer.TypeLockfiles
+
+	if opt.Input != "" {
+		// scan tar file
+		return TrivyRun(ctx.Context, opt, archiveStandaloneScanner, initFSCache)
+	}
+
+	return TrivyRun(ctx.Context, opt, imageRemoteScanner, initFSCache)
 }
