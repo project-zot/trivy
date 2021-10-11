@@ -60,18 +60,16 @@ func ConvertFromRPCPkgs(rpcPkgs []*common.Package) []ftypes.Package {
 }
 
 // ConvertFromRPCLibraries returns list of Fanal library
-func ConvertFromRPCLibraries(rpcLibs []*common.Library) []ftypes.LibraryInfo {
-	var libs []ftypes.LibraryInfo
+func ConvertFromRPCLibraries(rpcLibs []*common.Library) []ftypes.Package {
+	var pkgs []ftypes.Package
 	for _, l := range rpcLibs {
-		libs = append(libs, ftypes.LibraryInfo{
-			Library: deptypes.Library{
-				Name:    l.Name,
-				Version: l.Version,
-				License: l.License,
-			},
+		pkgs = append(pkgs, ftypes.Package{
+			Name:    l.Name,
+			Version: l.Version,
+			License: l.License,
 		})
 	}
-	return libs
+	return pkgs
 }
 
 // ConvertToRPCLibraries returns list of libraries
@@ -372,6 +370,7 @@ func ConvertToRPCOS(fos *ftypes.OS) *common.OS {
 	return &common.OS{
 		Family: fos.Family,
 		Name:   fos.Name,
+		Eosl:   fos.Eosl,
 	}
 }
 
@@ -410,9 +409,9 @@ func ConvertToRPCBlobInfo(diffID string, blobInfo ftypes.BlobInfo) *cache.PutBlo
 		var libs []*common.Library
 		for _, lib := range app.Libraries {
 			libs = append(libs, &common.Library{
-				Name:    lib.Library.Name,
-				Version: lib.Library.Version,
-				License: lib.Library.License,
+				Name:    lib.Name,
+				Version: lib.Version,
+				License: lib.License,
 			})
 		}
 		applications = append(applications, &common.Application{
@@ -476,14 +475,7 @@ func ConvertToMissingBlobsRequest(imageID string, layerIDs []string) *cache.Miss
 }
 
 // ConvertToRPCScanResponse converts report.Result to ScanResponse
-func ConvertToRPCScanResponse(results report.Results, os *ftypes.OS) *scanner.ScanResponse {
-	rpcOS := &common.OS{}
-	if os != nil {
-		rpcOS.Family = os.Family
-		rpcOS.Name = os.Name
-		rpcOS.Eosl = os.Eosl
-	}
-
+func ConvertToRPCScanResponse(results report.Results, fos *ftypes.OS) *scanner.ScanResponse {
 	var rpcResults []*scanner.Result
 	for _, result := range results {
 		rpcResults = append(rpcResults, &scanner.Result{
@@ -497,7 +489,7 @@ func ConvertToRPCScanResponse(results report.Results, os *ftypes.OS) *scanner.Sc
 	}
 
 	return &scanner.ScanResponse{
-		Os:      rpcOS,
+		Os:      ConvertToRPCOS(fos),
 		Results: rpcResults,
 	}
 }
