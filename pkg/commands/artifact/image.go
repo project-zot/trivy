@@ -11,6 +11,7 @@ import (
 	"github.com/aquasecurity/fanal/analyzer/config"
 	"github.com/aquasecurity/fanal/artifact"
 	"github.com/aquasecurity/fanal/cache"
+	pkgReport "github.com/aquasecurity/trivy/pkg/report"
 	"github.com/aquasecurity/trivy/pkg/scanner"
 )
 
@@ -48,4 +49,26 @@ func ImageRun(ctx *cli.Context) error {
 	}
 
 	return Run(ctx.Context, opt, dockerScanner, initFSCache)
+}
+
+// TrivyImageRun...
+// initializes options based on context
+// scans an image
+// returns vulnerability wrapped in Report format
+// Zot needs list of vulnerabilities as image scan output.
+func TrivyImageRun(ctx *cli.Context) (pkgReport.Report, error) {
+	opt, err := initOption(ctx)
+	if err != nil {
+		return pkgReport.Report{}, xerrors.Errorf("option error: %w", err)
+	}
+
+	// Disable the lock file scanning
+	opt.DisabledAnalyzers = analyzer.TypeLockfiles
+
+	if opt.Input != "" {
+		// scan tar file
+		return TrivyRun(ctx.Context, opt, archiveScanner, initFSCache)
+	}
+
+	return TrivyRun(ctx.Context, opt, dockerScanner, initFSCache)
 }
