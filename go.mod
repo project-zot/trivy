@@ -35,7 +35,7 @@ require (
 	github.com/open-policy-agent/opa v0.40.0
 	github.com/owenrumney/go-sarif/v2 v2.1.1
 	github.com/package-url/packageurl-go v0.1.1-0.20220203205134-d70459300c8a
-	github.com/samber/lo v1.21.0
+	github.com/samber/lo v1.28.2
 	github.com/stretchr/testify v1.7.1
 	github.com/testcontainers/testcontainers-go v0.13.0
 	github.com/twitchtv/twirp v8.1.2+incompatible
@@ -46,7 +46,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 )
 
