@@ -36,7 +36,7 @@ require (
 	github.com/owenrumney/go-sarif/v2 v2.1.1
 	github.com/package-url/packageurl-go v0.1.1-0.20220203205134-d70459300c8a
 	github.com/samber/lo v1.21.0
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go v0.13.0
 	github.com/twitchtv/twirp v8.1.2+incompatible
 	github.com/urfave/cli/v2 v2.8.1
@@ -46,7 +46,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 )
 
@@ -153,9 +153,9 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/spdx/tools-golang v0.3.0
+	github.com/spdx/tools-golang v0.5.2
 	github.com/spf13/cast v1.4.1 // indirect
-	github.com/stretchr/objx v0.3.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/vbatts/tar-split v0.11.2 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
@@ -204,6 +204,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/alecthomas/chroma v0.10.0 // indirect
+	github.com/anchore/go-struct-converter v0.0.0-20221118182256-c68fdcfa2092 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/emicklei/go-restful v2.9.5+incompatible // indirect
